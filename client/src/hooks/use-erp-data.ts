@@ -18,8 +18,16 @@ async function mutator<T, R>(url: string, method: string, data: T, responseSchem
     credentials: "include",
   });
   if (!res.ok) {
-    const errorData = await res.json().catch(() => ({}));
-    throw new Error(errorData.message || "Operation failed");
+    let errorMessage = "Operation failed";
+    try {
+      const errorData = await res.json();
+      if (typeof errorData === "object" && errorData !== null && "message" in errorData) {
+        errorMessage = String(errorData.message);
+      }
+    } catch (e) {
+      // Failed to parse JSON error response
+    }
+    throw new Error(errorMessage);
   }
   return responseSchema.parse(await res.json());
 }
