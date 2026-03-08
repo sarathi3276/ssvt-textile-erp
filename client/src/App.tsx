@@ -1,9 +1,10 @@
+import React from "react";
 import { Switch, Route } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { AuthProvider } from "@/hooks/use-auth";
+import { AuthProvider, useAuth } from "@/hooks/use-auth";
 import NotFound from "@/pages/not-found";
 
 // Components
@@ -22,22 +23,24 @@ import Statement from "@/pages/Statement";
 import Reports from "@/pages/Reports";
 import Notes from "@/pages/Notes";
 
-function ProtectedRouter() {
+function ProtectedRoute({ component: Component }: { component: React.ComponentType }) {
+  const { user, isLoading } = useAuth();
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-background">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <Login />;
+  }
+
   return (
     <AppLayout>
-      <Switch>
-        <Route path="/" component={Dashboard}/>
-        <Route path="/parties" component={PartyManagement}/>
-        <Route path="/received-meter" component={ReceivedMeter}/>
-        <Route path="/delivery-bag" component={DeliveryBag}/>
-        <Route path="/delivery-beam" component={DeliveryBeam}/>
-        <Route path="/salary" component={Salary}/>
-        <Route path="/advance" component={Advance}/>
-        <Route path="/statement" component={Statement}/>
-        <Route path="/reports" component={Reports}/>
-        <Route path="/notes" component={Notes}/>
-        <Route component={NotFound} />
-      </Switch>
+      <Component />
     </AppLayout>
   );
 }
@@ -50,9 +53,17 @@ function App() {
         <AuthProvider>
           <Switch>
             <Route path="/login" component={Login} />
-            <Route path="/:rest*">
-              <ProtectedRouter />
-            </Route>
+            <Route path="/" component={() => <ProtectedRoute component={Dashboard} />} />
+            <Route path="/parties" component={() => <ProtectedRoute component={PartyManagement} />} />
+            <Route path="/received-meter" component={() => <ProtectedRoute component={ReceivedMeter} />} />
+            <Route path="/delivery-bag" component={() => <ProtectedRoute component={DeliveryBag} />} />
+            <Route path="/delivery-beam" component={() => <ProtectedRoute component={DeliveryBeam} />} />
+            <Route path="/salary" component={() => <ProtectedRoute component={Salary} />} />
+            <Route path="/advance" component={() => <ProtectedRoute component={Advance} />} />
+            <Route path="/statement" component={() => <ProtectedRoute component={Statement} />} />
+            <Route path="/reports" component={() => <ProtectedRoute component={Reports} />} />
+            <Route path="/notes" component={() => <ProtectedRoute component={Notes} />} />
+            <Route component={NotFound} />
           </Switch>
         </AuthProvider>
       </TooltipProvider>

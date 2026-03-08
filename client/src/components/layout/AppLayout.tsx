@@ -11,20 +11,8 @@ import {
 } from "@/components/ui/sidebar";
 
 export function AppLayout({ children }: { children: ReactNode }) {
-  const { user, isLoading, logout, isAdmin } = useAuth();
+  const { user, logout, isAdmin } = useAuth();
   const [location] = useLocation();
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-background">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
-  }
-
-  if (!user) {
-    return <>{children}</>; // Login page handles itself
-  }
 
   const menuItems = [
     { title: "Dashboard", url: "/", icon: LayoutDashboard, adminOnly: false },
