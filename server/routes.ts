@@ -85,8 +85,9 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
   });
 
   app.get(api.auth.me.path, (req, res) => {
-    if (req.isAuthenticated()) res.json(req.user);
-    else res.status(401).json({ message: "Unauthorized" });
+    if (req.isAuthenticated()) 
+      res.json(req.user);
+    else res.redirect("/");
   });
  
 
