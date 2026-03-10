@@ -60,7 +60,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
   });
 
   const requireAuth = (req: any, res: any, next: any) => {
-    if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
+    if (!req.isAuthenticated()){ return res.status(401).json({ message: "Unauthorized" });}
     next();
   };
 
