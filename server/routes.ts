@@ -470,7 +470,7 @@ app.get("/api/reports/monthly", requireAuth, async (req, res) => {
 
   statement.push({
     date: b.createdAt,
-    description: `Bag Delivery (${b.numberOfBags} Bags | ${b.type} | ${b.weightPerBag} kg/bag)
+    description: `Bag Delivery (${b.numberOfBags} Bags | ${b as any}.type  || "-"} | ${b.weightPerBag} kg/bag)
 Total Weight: ${totalWeight} kg`,
     meter: null,
     cash: null
