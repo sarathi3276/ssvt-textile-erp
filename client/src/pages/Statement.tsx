@@ -69,7 +69,7 @@ export default function Statement() {
             ) : (
               statement?.map((s) => (
                 <TableRow key={s.id} className="hover:bg-muted/50">
-                  <TableCell>{format(new Date(s.date), 'dd-MMM-yyyy')}</TableCell>
+                  <TableCell>{format(new Date(s.date), 'dd-MM-yyyy')}</TableCell>
                   <TableCell className="font-medium text-foreground whitespace-pre-line">
   {s.description}
 </TableCell>
