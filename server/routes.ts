@@ -465,13 +465,18 @@ app.get("/api/reports/monthly", requireAuth, async (req, res) => {
     });
 
     bags.filter(b => b.partyId === partyId).forEach(b => {
-      statement.push({
-        date: b.createdAt,
-        description: `Bag Delivery (${b.numberOfBags})`,
-        meter: null,
-        cash: null
-      });
-    });
+
+  const totalWeight = Number(b.numberOfBags) * Number(b.weightPerBag);
+
+  statement.push({
+    date: b.createdAt,
+    description: `Bag Delivery (${b.numberOfBags} Bags | ${b.type} | ${b.weightPerBag} kg/bag)
+Total Weight: ${totalWeight} kg`,
+    meter: null,
+    cash: null
+  });
+
+});
 
     beams.filter(b => b.partyId === partyId).forEach(b => {
       statement.push({
