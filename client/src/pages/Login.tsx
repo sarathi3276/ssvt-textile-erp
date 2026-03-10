@@ -46,7 +46,7 @@ export default function Login() {
                 id="username" 
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                placeholder="e.g. admin or sarathi" 
+                placeholder="e.g. admin" 
                 required 
                 className="h-12 border-border focus-visible:ring-primary"
               />
