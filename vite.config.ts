@@ -1,10 +1,48 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
+import {VitePWA } from "@vitejs/plugin-react";
 import path from "path";
 
 export default defineConfig({
-  plugins: [
-    react(),
+    plugins: [
+  react(),
+
+  VitePWA({
+    registerType: "autoUpdate",
+    manifest: {
+      name: "SSVT Textile ERP",
+      short_name: "SSVT ERP",
+      start_url: "/",
+      display: "standalone",
+      background_color: "#ffffff",
+      theme_color: "#991b1b",
+      icons: [
+        {
+          src: "/icon-192.png",
+          sizes: "192x192",
+          type: "image/png"
+        },
+        {
+          src: "/icon-512.png",
+          sizes: "512x512",
+          type: "image/png"
+        }
+      ]
+    }
+  }),
+
+  ...(process.env.NODE_ENV !== "production" &&
+  process.env.REPL_ID !== undefined
+    ? [
+        await import("@replit/vite-plugin-cartographer").then((m) =>
+          m.cartographer(),
+        ),
+        await import("@replit/vite-plugin-dev-banner").then((m) =>
+          m.devBanner(),
+        ),
+      ]
+    : []),
+],
     ...(process.env.NODE_ENV !== "production" &&
     process.env.REPL_ID !== undefined
       ? [
