@@ -1,6 +1,6 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
-import {VitePWA } from " vite-plugin-pwa";
+import {VitePWA } from " vite-plugin-pwa ";
 import path from "path";
 
 export default defineConfig({
@@ -10,8 +10,8 @@ export default defineConfig({
   VitePWA({
     registerType: "autoUpdate",
     manifest: {
-      name: "SSVT Textile ERP",
-      short_name: "SSVT ERP",
+      name: "SSVT ",
+      short_name: "SSVT ",
       start_url: "/",
       display: "standalone",
       background_color: "#ffffff",
