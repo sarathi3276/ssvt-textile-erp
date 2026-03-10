@@ -82,6 +82,33 @@ export class DatabaseStorage implements IStorage {
       .returning();
     return updatedParty;
   }
+async deleteParty(id: number): Promise<void> {
+
+  // delete received meters
+  await db.delete(receivedMeters).where(eq(receivedMeters.partyId, id));
+
+  // delete bag deliveries
+  await db.delete(deliveryBags).where(eq(deliveryBags.partyId, id));
+
+  // delete beam deliveries
+  await db.delete(deliveryBeams).where(eq(deliveryBeams.partyId, id));
+
+  // delete salaries
+  await db.delete(salaries).where(eq(salaries.partyId, id));
+
+  // delete advances
+  await db.delete(advances).where(eq(advances.partyId, id));
+
+  // delete notes
+  await db.delete(notes).where(eq(notes.partyId, id));
+
+  // delete party login user
+  await db.delete(users).where(eq(users.partyId, id));
+
+  // finally delete the party
+  await db.delete(parties).where(eq(parties.id, id));
+
+}
 
   async updateAdvanceBalance(partyId: number, amountChange: number): Promise<void> {
     const party = await this.getParty(partyId);

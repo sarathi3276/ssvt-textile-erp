@@ -35,6 +35,18 @@ export default function PartyManagement() {
     setOpen(false);
     setFormData({ partyName: "", powerLoom: "", pick: "", reed: "" });
   };
+  const handleDelete = async (id:number) => {
+
+  if(!confirm("Delete this party?")) return;
+
+  await fetch(`/api/parties/${id}`,{
+    method:"DELETE",
+credentials:"include"
+  });
+
+  window.location.reload();
+
+};
 
   return (
     <div className="space-y-6">
@@ -78,11 +90,11 @@ export default function PartyManagement() {
         </Dialog>
       </div>
 
-      <ERPTable headers={["ID", "Party Name", "Power Loom", "Pick", "Reed", "Advance Bal"]}>
+      <ERPTable headers={["ID", "Party Name", "Power Loom", "Pick", "Reed", "Advance Bal", "Action"]}>
         {isLoading ? (
-          <TableRow><TableCell colSpan={6} className="text-center py-8 text-muted-foreground">Loading records...</TableCell></TableRow>
+          <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">Loading records...</TableCell></TableRow>
         ) : parties?.length === 0 ? (
-          <TableRow><TableCell colSpan={6} className="text-center py-8">No parties found.</TableCell></TableRow>
+          <TableRow><TableCell colSpan={7} className="text-center py-8">No parties found.</TableCell></TableRow>
         ) : (
           parties?.map((p) => (
             <TableRow key={p.id} className="hover:bg-muted/50">
@@ -94,6 +106,15 @@ export default function PartyManagement() {
               <TableCell className={Number(p.advanceBalance) > 0 ? "text-destructive font-bold" : "text-primary"}>
                 ₹{Number(p.advanceBalance).toLocaleString()}
               </TableCell>
+              <TableCell>
+<Button
+variant="destructive"
+size="sm"
+onClick={() => handleDelete(p.id)}
+>
+Delete
+</Button>
+</TableCell>
             </TableRow>
           ))
         )}

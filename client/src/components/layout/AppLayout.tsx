@@ -15,17 +15,16 @@ export function AppLayout({ children }: { children: ReactNode }) {
   const [location] = useLocation();
 
   const menuItems = [
-    { title: "Dashboard", url: "/", icon: LayoutDashboard, adminOnly: false },
-    { title: "Parties", url: "/parties", icon: Users, adminOnly: true },
-    { title: "Received Meter", url: "/received-meter", icon: Ruler, adminOnly: false },
-    { title: "Bag Delivery", url: "/delivery-bag", icon: Package, adminOnly: false },
-    { title: "Beam Delivery", url: "/delivery-beam", icon: Split, adminOnly: false },
-    { title: "Salary", url: "/salary", icon: Banknote, adminOnly: false },
-    { title: "Advance", url: "/advance", icon: HandCoins, adminOnly: false },
-    { title: "Statement", url: "/statement", icon: FileText, adminOnly: false },
-    { title: "Reports", url: "/reports", icon: BarChart3, adminOnly: true },
-    { title: "Notes", url: "/notes", icon: StickyNote, adminOnly: true },
-  ];
+  { title: "Dashboard", url: "/", icon: LayoutDashboard, adminOnly: false },
+  { title: "Parties", url: "/parties", icon: Users, adminOnly: true },
+  { title: "Received Meter", url: "/received-meter", icon: Ruler, adminOnly: false },
+  { title: "Bag Delivery", url: "/delivery-bag", icon: Package, adminOnly: false },
+  { title: "Beam Delivery", url: "/delivery-beam", icon: Split, adminOnly: false },
+  { title: "Salary", url: "/salary", icon: Banknote, adminOnly: false },
+  { title: "Advance", url: "/advance", icon: HandCoins, adminOnly: false },
+  { title: "Statement", url: "/statement", icon: FileText, adminOnly: false },
+  { title: "Notes", url: "/notes", icon: StickyNote, adminOnly: true },
+];
 
   const visibleItems = menuItems.filter(item => !item.adminOnly || isAdmin);
 

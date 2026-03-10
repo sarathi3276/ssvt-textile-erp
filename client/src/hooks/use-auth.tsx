@@ -13,7 +13,7 @@ interface AuthContextType {
   login: ReturnType<typeof useLoginMutation>["mutate"];
   logout: ReturnType<typeof useLogoutMutation>["mutate"];
   isAdmin: boolean;
-  isParty: boolean;
+    // Removed party login
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -43,7 +43,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     login: loginMutation.mutate,
     logout: logoutMutation.mutate,
     isAdmin: user?.role === "admin",
-    isParty: user?.role === "party",
+    // Removed party login
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

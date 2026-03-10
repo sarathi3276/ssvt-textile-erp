@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Factory, Loader2 } from "lucide-react";
 
 export default function Login() {
-  const { user, login } = useAuth();
+  const { user, login } = useAuth(); // Party login removed
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [isPending, setIsPending] = useState(false);
@@ -32,11 +32,10 @@ export default function Login() {
       <Card className="w-full max-w-md shadow-xl border-t-4 border-t-primary rounded-none">
         <CardHeader className="space-y-3 pb-8 pt-8">
           <div className="w-16 h-16 bg-primary/10 flex items-center justify-center mx-auto mb-4">
-            <Factory className="h-8 w-8 text-primary" />
+            <img src="/logo1.png" className="h-16 mx-auto mb-4" />
           </div>
-          <CardTitle className="text-2xl text-center font-bold tracking-tight">SSVT Textile ERP</CardTitle>
+          <CardTitle className="text-2xl text-center font-bold tracking-tight">SSVT</CardTitle>
           <CardDescription className="text-center text-base">
-            Enter your credentials to access the system
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -80,8 +79,6 @@ export default function Login() {
           </form>
           
           <div className="mt-8 text-center text-xs text-muted-foreground border-t pt-6">
-            <p>Admin Default: admin / admin000</p>
-            <p>Party Default: [partyName] / [partyName][powerLoom]</p>
           </div>
         </CardContent>
       </Card>

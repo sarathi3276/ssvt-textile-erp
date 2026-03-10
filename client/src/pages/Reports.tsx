@@ -1,5 +1,6 @@
 import { useWeeklyReport, useMonthlyReport } from "@/hooks/use-erp-data";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useSalaries, useParties } from "@/hooks/use-erp-data";
 import { ERPTable } from "@/components/shared/ERPTable";
 import { TableRow, TableCell } from "@/components/ui/table";
 import { useAuth } from "@/hooks/use-auth";
