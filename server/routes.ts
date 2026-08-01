@@ -242,30 +242,27 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
 
   });
 
-  app.post(api.salaries.create.path, requireAdmin, async (req, res) => {
+ app.post(api.salaries.create.path, requireAdmin, async (req, res) => {
+  try {
+    const input = api.salaries.create.input.parse(req.body);
 
-    try {
+  const party = await storage.getParty(input.partyId);
 
-      const input = api.salaries.create.input.parse(req.body);
+if (party) {
+  await storage.updateAdvanceBalance(
+    input.partyId,
+    Number(input.advance) - Number(party.advanceBalance)
+  );
+}
 
-      const diff = Number(input.cashPaid) - Number(input.finalSalary);
+const item = await storage.createSalary(input);
 
-      await storage.updateAdvanceBalance(input.partyId, diff);
-
-      const item = await storage.createSalary({
-        ...input,
-        balance: String(diff)
-      });
-
-      res.status(201).json(item);
-
-    } catch {
-
-      res.status(400).json({ message: "Invalid input" });
-
-    }
-
-  });
+    res.status(201).json(item);
+  } catch (err) {
+    console.error(err);
+    res.status(400).json({ message: "Invalid input" });
+  }
+});
 
   /* ---------------- ADVANCES ---------------- */
 
@@ -326,7 +323,7 @@ app.get("/api/reports/weekly", requireAuth, async (req, res) => {
         const week = Math.ceil(day / 7);
 
         if (week >=1 && week <=4) {
-          weeks[week-1] += Number(s.finalSalary);
+          weeks[week-1] += Number(s.basicSalary);
         }
 
       });
@@ -422,19 +419,17 @@ app.get("/api/reports/monthly", requireAuth, async (req, res) => {
     const partyAdv = advances.filter(a => a.partyId === p.id);
 
     const totalMeter = partySalaries.reduce((a,b)=>a+Number(b.totalMeter),0);
-    const salary = partySalaries.reduce((a,b)=>a+Number(b.salary),0);
+    const salary = partySalaries.reduce((a,b)=>a+Number(b.basicSalary),0);
     const rent = partySalaries.reduce((a,b)=>a+Number(b.rent),0);
     const advance = partyAdv.reduce((a,b)=>a+Number(b.amount),0);
-    const paid = partySalaries.reduce((a,b)=>a+Number(b.cashPaid),0);
 
-    return {
-      partyName: p.partyName,
-      totalMeter,
-      salary,
-      rent,
-      advance,
-      paid
-    };
+   return {
+  partyName: p.partyName,
+  totalMeter,
+  salary,
+  rent,
+  advance
+};
 
   });
 
@@ -466,15 +461,13 @@ app.get("/api/reports/monthly", requireAuth, async (req, res) => {
 
     bags.filter(b => b.partyId === partyId).forEach(b => {
 
-  const totalWeight = Number(b.numberOfBags) * Number(b.weightPerBag);
 
   statement.push({
-    date: b.createdAt,
-    description: `Bag Delivery (${b.numberOfBags} Bags | ${b.bagType} | ${b.weightPerBag} kg/bag)
-Total Weight: ${totalWeight} kg`,
-    meter: null,
-    cash: null
-  });
+  date: b.createdAt,
+  description: `Bag Delivery (${b.numberOfBags} Bags | ${b.bagType})`,
+  meter: null,
+  cash: null,
+});
 
 });
 
@@ -492,7 +485,7 @@ Total Weight: ${totalWeight} kg`,
         date: s.createdAt,
         description: "Salary Paid",
         meter: null,
-        cash: s.cashPaid
+        cash: s.basicSalary
       });
     });
 

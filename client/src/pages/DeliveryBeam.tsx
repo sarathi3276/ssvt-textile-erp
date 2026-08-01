@@ -17,21 +17,28 @@ export default function DeliveryBeam() {
   const createMutation = useCreateDeliveryBeam();
   const [open, setOpen] = useState(false);
 
-  const [formData, setFormData] = useState({ partyId: "", beamCount: "", beamMeter: "" });
-
-  const totalMeter = (Number(formData.beamCount || 0) * Number(formData.beamMeter || 0)).toFixed(2);
+const [formData, setFormData] = useState({
+  partyId: "",
+  beamType: "",
+  beamCount: "",
+  totalMeter: "",
+});
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     await createMutation.mutateAsync({
-      partyId: Number(formData.partyId),
-      beamCount: Number(formData.beamCount),
-      beamMeter: Number(formData.beamMeter),
-      totalMeter: Number(totalMeter),
-    });
+  partyId: Number(formData.partyId),
+  beamType: formData.beamType,
+  beamCount: Number(formData.beamCount),
+  totalMeter: Number(formData.totalMeter),
+});
     setOpen(false);
-    setFormData({ partyId: "", beamCount: "", beamMeter: "" });
-  };
+setFormData({
+  partyId: "",
+  beamType: "",
+  beamCount: "",
+  totalMeter: "",
+});  };
 
   const getPartyName = (id: number) => parties?.find(p => p.id === id)?.partyName || "Unknown";
 
@@ -61,20 +68,69 @@ export default function DeliveryBeam() {
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Beam Count</Label>
-                    <Input type="number" required value={formData.beamCount} onChange={e => setFormData({...formData, beamCount: e.target.value})} className="rounded-none" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Meter Per Beam</Label>
-                    <Input type="number" step="0.01" required value={formData.beamMeter} onChange={e => setFormData({...formData, beamMeter: e.target.value})} className="rounded-none" />
-                  </div>
-                </div>
-                <div className="p-3 bg-muted border font-mono text-sm flex justify-between">
-                  <span>Auto Calc Total Meter:</span>
-                  <span className="font-bold">{totalMeter} Mtr</span>
-                </div>
+               <div className="space-y-2">
+  <Label>Beam Type</Label>
+  <Select
+    value={formData.beamType}
+    onValueChange={(v) =>
+      setFormData({
+        ...formData,
+        beamType: v,
+      })
+    }
+    required
+  >
+    <SelectTrigger className="rounded-none">
+      <SelectValue placeholder="Select Beam Type" />
+    </SelectTrigger>
+
+   <SelectContent className="rounded-none">
+  <SelectItem value="20s">20s</SelectItem>
+  <SelectItem value="26s">26s</SelectItem>
+  <SelectItem value="30s">30s</SelectItem>
+  <SelectItem value="40s">40s</SelectItem>
+  <SelectItem value="20s(W)">20s(W)</SelectItem>
+  <SelectItem value="26s(W)">26s(W)</SelectItem>
+  <SelectItem value="30s(W)">30s(W)</SelectItem>
+  <SelectItem value="40s(W)">40s(W)</SelectItem>
+</SelectContent>
+  </Select>
+</div>
+
+<div className="grid grid-cols-2 gap-4">
+  <div className="space-y-2">
+    <Label>Beam Count</Label>
+    <Input
+      type="number"
+      required
+      value={formData.beamCount}
+      onChange={(e) =>
+        setFormData({
+          ...formData,
+          beamCount: e.target.value,
+        })
+      }
+      className="rounded-none"
+    />
+  </div>
+
+  <div className="space-y-2">
+    <Label>Total Meter</Label>
+    <Input
+      type="number"
+      required
+      value={formData.totalMeter}
+      onChange={(e) =>
+        setFormData({
+          ...formData,
+          totalMeter: e.target.value,
+        })
+      }
+      className="rounded-none"
+    />
+  </div>
+</div>
+
                 <Button type="submit" disabled={createMutation.isPending} className="w-full rounded-none">
                   {createMutation.isPending ? "Saving..." : "Save Delivery"}
                 </Button>
@@ -84,8 +140,15 @@ export default function DeliveryBeam() {
         )}
       </div>
 
-      <ERPTable headers={["Date", "Party", "Beams", "Mtr/Beam", "Total Meter"]}>
-        {isLoading ? (
+<ERPTable
+  headers={[
+    "Date",
+    "Party",
+    "Beam Type",
+    "Beam Count",
+    "Total Meter",
+  ]}
+>        {isLoading ? (
           <TableRow><TableCell colSpan={5} className="text-center py-8">Loading...</TableCell></TableRow>
         ) : records?.length === 0 ? (
           <TableRow><TableCell colSpan={5} className="text-center py-8">No records found.</TableCell></TableRow>
@@ -94,9 +157,10 @@ export default function DeliveryBeam() {
             <TableRow key={r.id} className="hover:bg-muted/50">
               <TableCell>{format(new Date(r.createdAt), 'dd-MMM-yyyy')}</TableCell>
               <TableCell className="font-bold capitalize">{getPartyName(r.partyId)}</TableCell>
-              <TableCell>{r.beamCount}</TableCell>
-              <TableCell>{r.beamMeter}</TableCell>
-              <TableCell className="text-primary font-bold">{r.totalMeter} Mtr</TableCell>
+            <TableCell>{r.beamType}</TableCell>
+<TableCell>{r.beamCount}</TableCell>
+<TableCell>{r.totalMeter} Mtr</TableCell>
+
             </TableRow>
           ))
         )}

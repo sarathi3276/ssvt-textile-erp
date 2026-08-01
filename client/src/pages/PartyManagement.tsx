@@ -31,6 +31,7 @@ export default function PartyManagement() {
       powerLoom: Number(formData.powerLoom),
       pick: Number(formData.pick),
       reed: Number(formData.reed),
+      companyName: ""
     });
     setOpen(false);
     setFormData({ partyName: "", powerLoom: "", pick: "", reed: "" });

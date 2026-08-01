@@ -12,10 +12,18 @@ export const users = pgTable("users", {
 
 export const parties = pgTable("parties", {
   id: serial("id").primaryKey(),
+
+  companyName: text("company_name").notNull(),
+
   partyName: text("party_name").notNull().unique(),
+
   powerLoom: integer("power_loom").notNull(),
+
   pick: numeric("pick").notNull(),
+
   reed: numeric("reed").notNull(),
+
+
   advanceBalance: numeric("advance_balance").notNull().default("0"),
 });
 
@@ -31,7 +39,6 @@ export const deliveryBags = pgTable("delivery_bags", {
   partyId: integer("party_id").notNull(),
   bagType: text("bag_type").notNull(),
   numberOfBags: integer("number_of_bags").notNull(),
-  weightPerBag: numeric("weight_per_bag").notNull(),
   totalWeight: numeric("total_weight").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
@@ -39,22 +46,30 @@ export const deliveryBags = pgTable("delivery_bags", {
 export const deliveryBeams = pgTable("delivery_beams", {
   id: serial("id").primaryKey(),
   partyId: integer("party_id").notNull(),
+  beamType: text("beam_type").notNull(),
   beamCount: integer("beam_count").notNull(),
-  beamMeter: numeric("beam_meter").notNull(),
   totalMeter: numeric("total_meter").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
-
 export const salaries = pgTable("salaries", {
   id: serial("id").primaryKey(),
+
   partyId: integer("party_id").notNull(),
+
   totalMeter: numeric("total_meter").notNull(),
+
   pick: numeric("pick").notNull(),
-  salary: numeric("salary").notNull(),
+
+  rate: numeric("rate").notNull(),
+
+  basicSalary: numeric("basic_salary").notNull(),
+
   rent: numeric("rent").notNull(),
-  finalSalary: numeric("final_salary").notNull(),
-  cashPaid: numeric("cash_paid").notNull(),
+
+  advance: numeric("advance").notNull(),
+
   balance: numeric("balance").notNull(),
+
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -80,11 +95,22 @@ export const notes = pgTable("notes", {
 export const insertUserSchema = createInsertSchema(users).omit({ id: true });
 
 export const insertPartySchema = createInsertSchema(parties)
-  .omit({ id: true, advanceBalance: true })
+  .omit({
+    id: true,
+    advanceBalance: true,
+  })
   .extend({
+    companyName: z.string(),
+
+    partyName: z.string(),
+
     powerLoom: z.coerce.number(),
+
     pick: z.coerce.number(),
+
     reed: z.coerce.number(),
+
+   
   });
 
 export const insertReceivedMeterSchema = createInsertSchema(receivedMeters)
@@ -97,7 +123,6 @@ export const insertDeliveryBagSchema = createInsertSchema(deliveryBags)
   .omit({ id: true, createdAt: true })
   .extend({
     numberOfBags: z.coerce.number(),
-    weightPerBag: z.coerce.number(),
     totalWeight: z.coerce.number(),
   });
 
@@ -105,19 +130,16 @@ export const insertDeliveryBeamSchema = createInsertSchema(deliveryBeams)
   .omit({ id: true, createdAt: true })
   .extend({
     beamCount: z.coerce.number(),
-    beamMeter: z.coerce.number(),
     totalMeter: z.coerce.number(),
-  });
-
-export const insertSalarySchema = createInsertSchema(salaries)
+  });export const insertSalarySchema = createInsertSchema(salaries)
   .omit({ id: true, createdAt: true })
   .extend({
     totalMeter: z.coerce.number(),
     pick: z.coerce.number(),
-    salary: z.coerce.number(),
+    rate: z.coerce.number(),
+    basicSalary: z.coerce.number(),
     rent: z.coerce.number(),
-    finalSalary: z.coerce.number(),
-    cashPaid: z.coerce.number(),
+    advance: z.coerce.number(),
     balance: z.coerce.number(),
   });
 

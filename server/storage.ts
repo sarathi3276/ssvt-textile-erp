@@ -134,46 +134,69 @@ async deleteParty(id: number): Promise<void> {
   async getDeliveryBags(): Promise<DeliveryBag[]> {
     return await db.select().from(deliveryBags).orderBy(desc(deliveryBags.createdAt));
   }
-
-  async createDeliveryBag(data: z.infer<typeof insertDeliveryBagSchema>): Promise<DeliveryBag> {
-    const [newItem] = await db.insert(deliveryBags).values({
+  async createDeliveryBag(
+  data: z.infer<typeof insertDeliveryBagSchema>
+): Promise<DeliveryBag> {
+  const [newItem] = await db
+    .insert(deliveryBags)
+    .values({
       ...data,
-      weightPerBag: String(data.weightPerBag),
-      totalWeight: String(data.totalWeight)
-    }).returning();
-    return newItem;
-  }
+      totalWeight: String(data.totalWeight),
+    })
+    .returning();
 
+  return newItem;
+}
+
+ async createDeliveryBeam(
+  data: z.infer<typeof insertDeliveryBeamSchema>
+): Promise<DeliveryBeam> {
+  const [newItem] = await db
+    .insert(deliveryBeams)
+    .values({
+      ...data,
+      totalMeter: String(data.totalMeter),
+    })
+    .returning();
+
+  return newItem;
+}
   async getDeliveryBeams(): Promise<DeliveryBeam[]> {
     return await db.select().from(deliveryBeams).orderBy(desc(deliveryBeams.createdAt));
   }
 
-  async createDeliveryBeam(data: z.infer<typeof insertDeliveryBeamSchema>): Promise<DeliveryBeam> {
-    const [newItem] = await db.insert(deliveryBeams).values({
-        ...data,
-        beamMeter: String(data.beamMeter),
-        totalMeter: String(data.totalMeter)
-    }).returning();
-    return newItem;
-  }
 
   async getSalaries(): Promise<Salary[]> {
     return await db.select().from(salaries).orderBy(desc(salaries.createdAt));
   }
 
-  async createSalary(data: z.infer<typeof insertSalarySchema>): Promise<Salary> {
-    const [newItem] = await db.insert(salaries).values({
+ async createSalary(
+  data: z.infer<typeof insertSalarySchema>
+): Promise<Salary> {
+  const [newItem] = await db
+    .insert(salaries)
+    .values({
       ...data,
       totalMeter: String(data.totalMeter),
       pick: String(data.pick),
-      salary: String(data.salary),
+      rate: String(data.rate),
+      basicSalary: String(data.basicSalary),
       rent: String(data.rent),
-      finalSalary: String(data.finalSalary),
-      cashPaid: String(data.cashPaid),
-      balance: String(data.balance)
-    }).returning();
-    return newItem;
-  }
+      advance: String(data.advance),
+      balance: String(data.balance),
+    })
+    .returning();
+
+  // Update Party Advance Balance
+  await db
+    .update(parties)
+    .set({
+      advanceBalance: String(data.advance),
+    })
+    .where(eq(parties.id, data.partyId));
+
+  return newItem;
+}
 
   async getAdvances(): Promise<Advance[]> {
     return await db.select().from(advances).orderBy(desc(advances.createdAt));

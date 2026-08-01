@@ -17,21 +17,24 @@ export default function DeliveryBag() {
   const createMutation = useCreateDeliveryBag();
   const [open, setOpen] = useState(false);
 
-  const [formData, setFormData] = useState({ partyId: "", bagType: "", numberOfBags: "", weightPerBag: "" });
+  const [formData, setFormData] = useState({
+    partyId: "",
+    bagType: "",
+    numberOfBags: "",
+    totalWeight: "",
+  });
 
-  const totalWeight = (Number(formData.numberOfBags || 0) * Number(formData.weightPerBag || 0)).toFixed(2);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await createMutation.mutateAsync({
-      partyId: Number(formData.partyId),
-      bagType: formData.bagType,
-      numberOfBags: Number(formData.numberOfBags),
-      weightPerBag: Number(formData.weightPerBag),
-      totalWeight: Number(totalWeight),
-    });
+   await createMutation.mutateAsync({
+  partyId: Number(formData.partyId),
+  bagType: formData.bagType,
+  numberOfBags: Number(formData.numberOfBags),
+  totalWeight: Number(formData.totalWeight),
+});
     setOpen(false);
-    setFormData({ partyId: "", bagType: "", numberOfBags: "", weightPerBag: "" });
+    setFormData({ partyId: "", bagType: "", numberOfBags: "", totalWeight: "" });
   };
 
   const getPartyName = (id: number) => parties?.find(p => p.id === id)?.partyName || "Unknown";
@@ -67,26 +70,51 @@ export default function DeliveryBag() {
                   <Select value={formData.bagType} onValueChange={(v) => setFormData({...formData, bagType: v})} required>
                     <SelectTrigger className="rounded-none"><SelectValue placeholder="Select Type" /></SelectTrigger>
                     <SelectContent className="rounded-none">
-                      <SelectItem value="20s">20s</SelectItem>
-                      <SelectItem value="30s">30s</SelectItem>
-                      <SelectItem value="40s">40s</SelectItem>
+                     <SelectItem value="20s">20s</SelectItem>
+                       <SelectItem value="26s">26s</SelectItem>
+                       <SelectItem value="30s">30s</SelectItem>
+                       <SelectItem value="40s">40s</SelectItem>
+                       <SelectItem value="20s(W)">20s(W)</SelectItem>
+                       <SelectItem value="26s(W)">26s(W)</SelectItem>
+                       <SelectItem value="30s(W)">30s(W)</SelectItem>
+                       <SelectItem value="40s(W)">40s(W)</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Number of Bags</Label>
-                    <Input type="number" required value={formData.numberOfBags} onChange={e => setFormData({...formData, numberOfBags: e.target.value})} className="rounded-none" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Weight Per Bag (kg)</Label>
-                    <Input type="number" step="0.01" required value={formData.weightPerBag} onChange={e => setFormData({...formData, weightPerBag: e.target.value})} className="rounded-none" />
-                  </div>
-                </div>
-                <div className="p-3 bg-muted border font-mono text-sm flex justify-between">
-                  <span>Auto Calc Total Weight:</span>
-                  <span className="font-bold">{totalWeight} kg</span>
-                </div>
+               <div className="grid grid-cols-2 gap-4">
+  <div className="space-y-2">
+    <Label>Bag Count</Label>
+    <Input
+      type="number"
+      required
+      value={formData.numberOfBags}
+      onChange={(e) =>
+        setFormData({
+          ...formData,
+          numberOfBags: e.target.value,
+        })
+      }
+      className="rounded-none"
+    />
+  </div>
+
+  <div className="space-y-2">
+    <Label>Total Weight (kg)</Label>
+    <Input
+      type="number"
+      step="0.01"
+      required
+      value={formData.totalWeight}
+      onChange={(e) =>
+        setFormData({
+          ...formData,
+          totalWeight: e.target.value,
+        })
+      }
+      className="rounded-none"
+    />
+  </div>
+</div>
                 <Button type="submit" disabled={createMutation.isPending} className="w-full rounded-none">
                   {createMutation.isPending ? "Saving..." : "Save Delivery"}
                 </Button>
@@ -96,24 +124,41 @@ export default function DeliveryBag() {
         )}
       </div>
 
-      <ERPTable headers={["Date", "Party", "Type", "Bags", "Wt/Bag", "Total Weight"]}>
-        {isLoading ? (
-          <TableRow><TableCell colSpan={6} className="text-center py-8">Loading...</TableCell></TableRow>
-        ) : records?.length === 0 ? (
-          <TableRow><TableCell colSpan={6} className="text-center py-8">No records found.</TableCell></TableRow>
-        ) : (
-          records?.map((r) => (
-            <TableRow key={r.id} className="hover:bg-muted/50">
-              <TableCell>{format(new Date(r.createdAt), 'dd-MMM-yyyy')}</TableCell>
-              <TableCell className="font-bold capitalize">{getPartyName(r.partyId)}</TableCell>
-              <TableCell>{r.bagType}</TableCell>
-              <TableCell>{r.numberOfBags}</TableCell>
-              <TableCell>{r.weightPerBag} kg</TableCell>
-              <TableCell className="text-primary font-bold">{r.totalWeight} kg</TableCell>
-            </TableRow>
-          ))
-        )}
-      </ERPTable>
+<ERPTable headers={["Date", "Party", "Yarn Type", "Bag Count", "Total Weight"]}>
+  {isLoading ? (
+    <TableRow>
+      <TableCell colSpan={5} className="text-center py-8">
+        Loading...
+      </TableCell>
+    </TableRow>
+  ) : records?.length === 0 ? (
+    <TableRow>
+      <TableCell colSpan={5} className="text-center py-8">
+        No records found.
+      </TableCell>
+    </TableRow>
+  ) : (
+    records?.map((r) => (
+      <TableRow key={r.id} className="hover:bg-muted/50">
+        <TableCell>
+          {format(new Date(r.createdAt), "dd-MMM-yyyy")}
+        </TableCell>
+
+        <TableCell className="font-bold capitalize">
+          {getPartyName(r.partyId)}
+        </TableCell>
+
+        <TableCell>{r.bagType}</TableCell>
+
+        <TableCell>{r.numberOfBags}</TableCell>
+
+        <TableCell className="text-primary font-bold">
+          {r.totalWeight} kg
+        </TableCell>
+      </TableRow>
+    ))
+  )}
+</ERPTable>
     </div>
   );
 }
