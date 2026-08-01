@@ -2,6 +2,7 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
 import { createServer } from "http";
+import path from "path";
 
 const app = express();
 const httpServer = createServer(app);
@@ -80,7 +81,6 @@ app.use((req, res, next) => {
   // doesn't interfere with the other routes
   if (process.env.NODE_ENV === "production") {
     serveStatic(app);
-    app.get("*",(req,res) =>{res.sendFile("index.html",{root:"client/dist"})})
   } else {
     const { setupVite } = await import("./vite");
     await setupVite(httpServer, app);
