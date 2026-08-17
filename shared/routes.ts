@@ -9,7 +9,6 @@ import {
   insertAdvanceSchema, advances,
   insertNoteSchema, notes
 } from './schema';
-
 export const errorSchemas = {
   validation: z.object({ message: z.string(), field: z.string().optional() }),
   notFound: z.object({ message: z.string() }),
@@ -197,12 +196,13 @@ export const api = {
       path: '/api/reports/monthly' as const,
       responses: {
         200: z.array(z.object({
-          partyName: z.string(),
-          totalMeter: z.number(),
-          salary: z.number(),
-          rent: z.number(),
-          advance: z.number(),
-          paid: z.number()
+         partyName: z.string(),
+totalMeter: z.number(),
+salary: z.number(),
+rent: z.number(),
+advance: z.number(),
+paid: z.number(),
+currentBalance: z.number(),
         }))
       }
     }

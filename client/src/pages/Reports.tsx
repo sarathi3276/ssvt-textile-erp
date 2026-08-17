@@ -44,18 +44,48 @@ export default function Reports() {
         </TabsContent>
         
         <TabsContent value="monthly" className="mt-4 border-none p-0">
-          <ERPTable headers={["Party", "Total Meter", "Gross Salary", "Rent Ded.", "Advance Ded.", "Cash Paid"]}>
-            {loadingMonthly ? (
+<ERPTable
+  headers={[
+    "Party",
+    "Total Meter",
+    "Gross Salary",
+    "Rent",
+    "Advance",
+    "Paid Amount",
+    "Current Balance",
+  ]}
+>            {loadingMonthly ? (
               <TableRow><TableCell colSpan={6} className="text-center py-8">Loading...</TableCell></TableRow>
             ) : monthly?.map((r, i) => (
-              <TableRow key={i}>
-                <TableCell className="font-bold capitalize">{r.partyName}</TableCell>
-                <TableCell className="text-primary font-bold">{r.totalMeter.toLocaleString()} Mtr</TableCell>
-                <TableCell>₹{r.salary.toLocaleString()}</TableCell>
-                <TableCell className="text-destructive">₹{r.rent.toLocaleString()}</TableCell>
-                <TableCell className="text-destructive">₹{r.advance.toLocaleString()}</TableCell>
-                <TableCell className="text-green-700 font-bold bg-muted/50">₹{r.paid.toLocaleString()}</TableCell>
-              </TableRow>
+             <TableRow key={i}>
+  <TableCell className="font-bold capitalize">
+    {r.partyName}
+  </TableCell>
+
+  <TableCell>
+    {r.totalMeter.toLocaleString()} Mtr
+  </TableCell>
+
+  <TableCell>
+    ₹{r.salary.toLocaleString()}
+  </TableCell>
+
+  <TableCell>
+    ₹{r.rent.toLocaleString()}
+  </TableCell>
+
+  <TableCell>
+    ₹{r.advance.toLocaleString()}
+  </TableCell>
+
+  <TableCell className="text-green-700 font-bold">
+    ₹{r.paid.toLocaleString()}
+  </TableCell>
+
+  <TableCell className="text-primary font-bold">
+    ₹{r.currentBalance.toLocaleString()}
+  </TableCell>
+</TableRow>
             ))}
           </ERPTable>
         </TabsContent>

@@ -7,9 +7,9 @@ import {
   deliveryBags,
   deliveryBeams,
   salaries,
-  advances
+  advances,
+  insertSalarySchema
 } from "@shared/schema";
-
 import { db } from "./db";
 import { storage } from "./storage";
 import { api } from "@shared/routes";
@@ -93,42 +93,47 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
 
   /* ---------------- PARTIES ---------------- */
 
-  app.get(api.parties.list.path, requireAuth, async (req, res) => {
-    const parties = await storage.getParties();
-    res.json(parties);
-  });
-
   app.post(api.parties.create.path, requireAdmin, async (req, res) => {
-
     try {
 
       const input = api.parties.create.input.parse(req.body);
 
-      const party = await storage.createParty({
-        ...input,
-        pick: String(input.pick),
-        reed: String(input.reed)
-      });
+      const party = await storage.createParty(input
+      );
 
       await storage.createUser({
         username: party.partyName,
         password: `${party.partyName}${party.powerLoom}`,
         role: "party",
-        partyId: party.id
+        partyId: party.id,
       });
 
       res.status(201).json(party);
 
     } catch (err) {
+      console.error(err);
+      res.status(400).json({ message: "Invalid input" });
+    }
+  });
+/* ---------------- LIST PARTIES ---------------- */
 
-      if (err instanceof z.ZodError)
-        res.status(400).json({ message: err.errors[0].message });
-      else
-        res.status(500).json({ message: "Internal Error" });
+app.get(api.parties.list.path, requireAuth, async (req, res) => {
+  try {
+    const parties = await storage.getParties();
 
+    if (req.user && (req.user as User).role === "party") {
+      return res.json(
+        parties.filter(p => p.id === (req.user as User).partyId)
+      );
     }
 
-  });
+    res.json(parties);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Failed to load parties" });
+  }
+});
+     
    /* DELETE PARTY */
 
   app.delete("/api/parties/:id", requireAdmin, async (req, res) => {
@@ -241,29 +246,26 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
     res.json(salaries);
 
   });
-
- app.post(api.salaries.create.path, requireAdmin, async (req, res) => {
+app.post(api.salaries.create.path, requireAdmin, async (req, res) => {
   try {
-    const input = api.salaries.create.input.parse(req.body);
+    console.log("1. Route entered");
 
-  const party = await storage.getParty(input.partyId);
+    const input = insertSalarySchema.parse(req.body);
+    console.log("2. Parsed OK");
 
-if (party) {
-  await storage.updateAdvanceBalance(
-    input.partyId,
-    Number(input.advance) - Number(party.advanceBalance)
-  );
-}
-
-const item = await storage.createSalary(input);
+    const item = await storage.createSalary(input);
+    console.log("3. Saved OK");
 
     res.status(201).json(item);
-  } catch (err) {
-    console.error(err);
-    res.status(400).json({ message: "Invalid input" });
+
+  } catch (err: any) {
+    console.log("MESSAGE:", err.message);
+    console.log("STACK:", err.stack);
+    console.dir(err, { depth: null });
+
+    res.status(500).json({ message: err.message });
   }
 });
-
   /* ---------------- ADVANCES ---------------- */
 
   app.get(api.advances.list.path, requireAuth, async (req, res) => {
@@ -284,24 +286,25 @@ const item = await storage.createSalary(input);
 
       const input = api.advances.create.input.parse(req.body);
 
-      const party = await storage.getParty(input.partyId);
+    const party = await storage.getParty(input.partyId);
 
-      const newBalance = Number(party.advanceBalance) + Number(input.amount);
+const newBalance =
+  Number(party?.advanceBalance ?? 0) +
+  Number(input.amount);
 
-      await storage.updateAdvanceBalance(input.partyId, Number(input.amount));
-
-      const item = await storage.createAdvance({
-        ...input,
-        balance: String(newBalance)
-      });
+const item = await storage.createAdvance({
+  ...input,
+  balance: String(newBalance),
+});
 
       res.status(201).json(item);
 
-    } catch {
-
-      res.status(400).json({ message: "Invalid input" });
-
-    }
+    } catch (err: any) {
+  console.error(err);
+  res.status(400).json({
+    message: err.message,
+  });
+}
 
   });
   /* ---------------- WEEKLY REPORT ---------------- */
@@ -412,26 +415,23 @@ app.get("/api/reports/monthly", requireAuth, async (req, res) => {
   const salaries = await storage.getSalaries();
   const parties = await storage.getParties();
   const advances = await storage.getAdvances();
+const report = parties.map((p) => {
 
-  const report = parties.map(p => {
+  const partySalaries = salaries.filter(s => s.partyId === p.id);
 
-    const partySalaries = salaries.filter(s => s.partyId === p.id);
-    const partyAdv = advances.filter(a => a.partyId === p.id);
+  return {
+    partyName: p.partyName,
+    totalMeter: partySalaries.reduce((a,b)=>a+Number(b.totalMeter),0),
+    salary: partySalaries.reduce((a,b)=>a+Number(b.basicSalary),0),
+    rent: partySalaries.reduce((a,b)=>a+Number(b.rent),0),
+    advance: partySalaries.reduce((a,b)=>a+Number(b.advance),0),
+    paid: partySalaries.reduce((a,b)=>a+Number(b.paidAmount),0),
+currentBalance:
+  partySalaries.length > 0
+    ? Number(partySalaries[partySalaries.length - 1].currentBalance)
+    : 0,  };
 
-    const totalMeter = partySalaries.reduce((a,b)=>a+Number(b.totalMeter),0);
-    const salary = partySalaries.reduce((a,b)=>a+Number(b.basicSalary),0);
-    const rent = partySalaries.reduce((a,b)=>a+Number(b.rent),0);
-    const advance = partyAdv.reduce((a,b)=>a+Number(b.amount),0);
-
-   return {
-  partyName: p.partyName,
-  totalMeter,
-  salary,
-  rent,
-  advance
-};
-
-  });
+});
 
   res.json(report);
 
@@ -439,70 +439,141 @@ app.get("/api/reports/monthly", requireAuth, async (req, res) => {
   /* ---------------- STATEMENT ---------------- */
 
   app.get("/api/statement/:partyId", requireAuth, async (req, res) => {
+  const partyId = parseInt(req.params.partyId);
 
-    const partyId = parseInt(req.params.partyId);
+  const meters = await storage.getReceivedMeters();
+  const bags = await storage.getDeliveryBags();
+  const beams = await storage.getDeliveryBeams();
+  const salaries = await storage.getSalaries();
+  const advances = await storage.getAdvances();
 
-    const meters = await storage.getReceivedMeters();
-    const bags = await storage.getDeliveryBags();
-    const beams = await storage.getDeliveryBeams();
-    const salaries = await storage.getSalaries();
-    const advances = await storage.getAdvances();
+  const statement: any[] = [];
 
-    const statement: any[] = [];
+  // Received Meter
+meters
+  .filter((m) => m.partyId === partyId)
+ .forEach((m) => {
 
-    meters.filter(m => m.partyId === partyId).forEach(m => {
-      statement.push({
-        date: m.createdAt,
-        description: "Received Meter",
-        meter: m.meter,
-        cash: null
-      });
-    });
-
-    bags.filter(b => b.partyId === partyId).forEach(b => {
-
+  console.log("STATEMENT METER DATA:", {
+    id: m.id,
+    meter: m.meter,
+    pieces: m.pieces,
+  });
 
   statement.push({
-  date: b.createdAt,
-  description: `Bag Delivery (${b.numberOfBags} Bags | ${b.bagType})`,
-  meter: null,
-  cash: null,
-});
+    id: `meter-${m.id}`,
+    date: m.createdAt,
+    description: "Received Meter",
 
-});
+    meter: Number(m.meter),
+    pieces: Number(m.pieces),
 
-    beams.filter(b => b.partyId === partyId).forEach(b => {
-      statement.push({
-        date: b.createdAt,
-        description: `Beam Delivery (${b.beamCount})`,
-        meter: b.totalMeter,
-        cash: null
-      });
-    });
+    bagType: null,
+    bagWeight: null,
 
-    salaries.filter(s => s.partyId === partyId).forEach(s => {
-      statement.push({
-        date: s.createdAt,
-        description: "Salary Paid",
-        meter: null,
-        cash: s.basicSalary
-      });
-    });
+    beamCount: null,
+    beamMeter: null,
 
-    advances.filter(a => a.partyId === partyId).forEach(a => {
-      statement.push({
-        date: a.createdAt,
-        description: `Advance - ${a.reason}`,
-        meter: null,
-        cash: a.amount
-      });
-    });
+    credit: null,
+    debit: null,
 
-    statement.sort((a,b)=> new Date(a.date).getTime()-new Date(b.date).getTime());
+    advanceBalance: null,
+    currentBalance: null,
 
-    res.json(statement);
-
+    note: null,
   });
+});
+  
+
+  // Beam Delivery
+  beams
+    .filter((b) => b.partyId === partyId)
+    .forEach((b) => {
+      statement.push({
+        id: `beam-${b.id}`,
+        date: b.createdAt,
+        description: "Beam Delivery",
+
+        meter: null,
+
+        bagType: null,
+        bagWeight: null,
+
+        beamCount: b.beamCount,
+        beamMeter: b.totalMeter,
+
+        credit: null,
+        debit: null,
+
+        note: null,
+      });
+    });
+
+  // Salary
+  // Salary
+// Salary
+salaries
+  .filter((s) => s.partyId === partyId)
+  .forEach((s) => {
+    statement.push({
+      id: `salary-${s.id}`,
+      date: s.createdAt,
+      description: "Salary",
+
+meter: Number(s.totalMeter),
+      bagType: null,
+      bagWeight: null,
+
+      beamCount: null,
+      beamMeter: null,
+
+      credit: null,
+
+      // Show amount actually paid
+      debit: Number(s.paidAmount),
+
+      basicSalary: Number(s.basicSalary),
+      rent: Number(s.rent),
+      advance: Number(s.advance),
+      paid: Number(s.paidAmount),
+      currentBalance: Number(s.currentBalance),
+
+      note: `Salary ₹${s.basicSalary} | Rent ₹${s.rent} | Paid ₹${s.paidAmount}`,
+    });
+  });
+
+  // Advance
+ // Advance
+advances
+  .filter((a) => a.partyId === partyId)
+  .forEach((a) => {
+    statement.push({
+      id: `advance-${a.id}`,
+      date: a.createdAt,
+      description: "Advance",
+
+    meter: null,
+    bagType: null,
+    bagWeight: null,
+    beamCount: null,
+    beamMeter: null,
+
+    credit: Number(a.amount),
+    debit: null,
+
+    advanceBalance: Number(a.balance),
+
+currentBalance: null,
+note: `${a.reason} | Advance Balance ₹${a.balance}`,  });
+});  
+
+statement.sort(
+  (a, b) =>
+    new Date(a.date).getTime() -
+    new Date(b.date).getTime()
+);
+
+res.json(statement);});
   /* ---------------- DASHBOARD STATS ---------------- */
 
 app.get("/api/dashboard/stats", requireAuth, async (req, res) => {
@@ -576,4 +647,4 @@ async function seedDatabase() {
 
   }
 
-}
+};

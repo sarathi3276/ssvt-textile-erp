@@ -1,8 +1,19 @@
 import { ReactNode } from "react";
 import { Link, useLocation } from "wouter";
-import { 
-  LayoutDashboard, Users, Ruler, Package, Split, 
-  Banknote, HandCoins, FileText, BarChart3, StickyNote, LogOut, Loader2 
+import {
+  LayoutDashboard,
+  Users,
+  Ruler,
+  Package,
+  Split,
+  Banknote,
+  HandCoins,
+  FileText,
+  BarChart3,
+  StickyNote,
+  Calculator,
+  LogOut,
+  Loader2
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { 
@@ -24,6 +35,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
   { title: "Advance", url: "/advance", icon: HandCoins, adminOnly: false },
   { title: "Statement", url: "/statement", icon: FileText, adminOnly: false },
   { title: "Notes", url: "/notes", icon: StickyNote, adminOnly: true },
+{ title: "Costing", url: "/costing", icon: Calculator, adminOnly: false },
 ];
 
   const visibleItems = menuItems.filter(item => !item.adminOnly || isAdmin);
@@ -33,7 +45,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
       <div className="flex h-screen w-full overflow-hidden bg-background">
         <Sidebar className="no-print border-r border-border">
           <div className="flex items-center px-6 h-16 border-b border-border bg-primary text-primary-foreground">
-            <h1 className="text-xl font-bold tracking-wider">SSVT TEXTILE</h1>
+            <h1 className="text-xl font-bold tracking-wider">SSVT </h1>
           </div>
           <SidebarContent>
             <SidebarGroup>

@@ -5,7 +5,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider, useAuth } from "@/hooks/use-auth";
-import NotFound from "@/pages/not-found";
+import NotFound from "@/pages/costing";
 
 // Components
 import { AppLayout } from "@/components/layout/AppLayout";
@@ -22,6 +22,7 @@ import Advance from "@/pages/Advance";
 import Statement from "@/pages/Statement";
 import Reports from "@/pages/Reports";
 import Notes from "@/pages/Notes";
+import Costing from "@/pages/costing";
 
 function ProtectedRoute({ component: Component }: { component: React.ComponentType }) {
   const { user, isLoading } = useAuth();
@@ -63,6 +64,7 @@ function App() {
             <Route path="/statement" component={() => <ProtectedRoute component={Statement} />} />
             <Route path="/reports" component={() => <ProtectedRoute component={Reports} />} />
             <Route path="/notes" component={() => <ProtectedRoute component={Notes} />} />
+            <Route path="/costing" component={() => <ProtectedRoute component={Costing} />} />
             <Route component={NotFound} />
           </Switch>
         </AuthProvider>

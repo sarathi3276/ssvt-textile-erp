@@ -7,8 +7,26 @@ import { Ruler, Users, HandCoins, Banknote, Activity } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
 
+interface DashboardStats {
+  todayReceivedMeter: number;
+  weeklyMeterTotal: number;
+  totalParties: number;
+  pendingSalary: number;
+  totalAdvance: number;
+  weeklyChart: Array<{ name: string; meters: number }>;
+  recentActivity: Array<{
+    partyName: string;
+    activity: string;
+    amount: number;
+    date: string | Date;
+  }>;
+}
+
 export default function Dashboard() {
-  const { data: stats, isLoading } = useDashboardStats();
+  const { data: stats, isLoading } = useDashboardStats() as {
+    data: DashboardStats | undefined;
+    isLoading: boolean;
+  };
   const { isAdmin } = useAuth();
 
   if (isLoading || !stats) {

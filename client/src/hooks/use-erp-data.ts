@@ -6,13 +6,21 @@ import { z } from "zod";
 /* ---------------- FETCH HELPER ---------------- */
 
 async function fetcher<T>(url: string): Promise<T> {
-  const res = await fetch(url, { credentials: "include" });
+  const res = await fetch(url, {
+    credentials: "include",
+  });
+
+  const data = await res.json();
+
+  console.log("URL:", url);
+  console.log("STATUS:", res.status);
+  console.log("DATA:", data);
 
   if (!res.ok) {
     throw new Error(`HTTP error! status: ${res.status}`);
   }
 
-  return await res.json();
+  return data;
 }
 
 /* ---------------- MUTATION HELPER ---------------- */

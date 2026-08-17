@@ -20,17 +20,29 @@ export default function Advance() {
   const [formData, setFormData] = useState({ partyId: "", amount: "", reason: "" });
 
   const selectedParty = parties?.find(p => p.id.toString() === formData.partyId);
+const currentAdvance = Number(selectedParty?.advanceBalance ?? 0);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    await createMutation.mutateAsync({
-      partyId: Number(formData.partyId),
-      amount: Number(formData.amount),
-      reason: formData.reason,
-    });
-    setOpen(false);
-    setFormData({ partyId: "", amount: "", reason: "" });
-  };
+const newAdvanceBalance =
+  currentAdvance + Number(formData.amount || 0);
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+
+  await createMutation.mutateAsync({
+    partyId: Number(formData.partyId),
+    amount: Number(formData.amount),
+    reason: formData.reason,
+
+    balance: String(newAdvanceBalance),
+  });
+
+  setOpen(false);
+
+  setFormData({
+    partyId: "",
+    amount: "",
+    reason: "",
+  });
+};
 
   return (
     <div className="space-y-6">

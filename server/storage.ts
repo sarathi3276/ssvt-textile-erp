@@ -71,13 +71,30 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createParty(party: z.infer<typeof insertPartySchema>): Promise<Party> {
-    const [newParty] = await db.insert(parties).values(party).returning();
-    return newParty;
+const [newParty] = await db
+  .insert(parties)
+  .values({
+    ...party,
+    pick: String(party.pick),
+    reed: String(party.reed),
+  })
+  .returning();    return newParty;
   }
 
   async updateParty(id: number, updates: Partial<z.infer<typeof insertPartySchema>>): Promise<Party> {
+    const normalizedUpdates = {
+      ...updates,
+      powerLoom: updates.powerLoom !== undefined ? String(updates.powerLoom) : undefined,
+      pick: updates.pick !== undefined ? String(updates.pick) : undefined,
+      reed: updates.reed !== undefined ? String(updates.reed) : undefined,
+    } as typeof updates & {
+      powerLoom?: string;
+      pick?: string;
+      reed?: string;
+    };
+
     const [updatedParty] = await db.update(parties)
-      .set(updates)
+      .set(normalizedUpdates as any)
       .where(eq(parties.id, id))
       .returning();
     return updatedParty;
@@ -112,17 +129,66 @@ async deleteParty(id: number): Promise<void> {
 
   async updateAdvanceBalance(partyId: number, amountChange: number): Promise<void> {
     const party = await this.getParty(partyId);
+
     if (party) {
-      const currentBalance = parseFloat(party.advanceBalance.toString());
-      const newBalance = currentBalance + amountChange;
-      await db.update(parties).set({ advanceBalance: newBalance.toString() }).where(eq(parties.id, partyId));
+      const currentAdvance = Number(party.advanceBalance);
+
+      await db
+        .update(parties)
+        .set({
+          advanceBalance: String(currentAdvance + Number(amountChange)),
+        })
+        .where(eq(parties.id, partyId));
     }
   }
 
   async getReceivedMeters(): Promise<ReceivedMeter[]> {
     return await db.select().from(receivedMeters).orderBy(desc(receivedMeters.createdAt));
   }
+async createSalary(data: z.infer<typeof insertSalarySchema>): Promise<Salary> {
+  console.log("DATA:", data);
 
+  try {
+  // Get previous balance FIRST
+const party = await this.getParty(data.partyId);
+
+const previousBalance = Number(party?.currentBalance ?? 0);
+
+const runningBalance = Number(data.currentBalance);
+
+// Save salary
+const [newItem] = await db
+  .insert(salaries)
+  .values({
+    partyId: data.partyId,
+    totalMeter: String(data.totalMeter),
+    pick: String(data.pick),
+    rate: String(data.rate),
+    basicSalary: String(data.basicSalary),
+    rent: String(data.rent),
+    advance: String(data.advance),
+    paidAmount: String(data.paidAmount),
+
+    currentBalance: String(runningBalance),
+    balance: String(data.balance),
+  })
+  .returning();
+await db
+  .update(parties)
+  .set({
+    advanceBalance: String(data.advance),
+    currentBalance: String(runningBalance), // ✅ Save the running balance
+  })
+  .where(eq(parties.id, data.partyId));
+
+console.log("UPDATE SUCCESS");
+
+return newItem;
+  } catch (err) {
+    console.error("CREATE SALARY ERROR:", err);
+    throw err;
+  }
+}
   async createReceivedMeter(data: z.infer<typeof insertReceivedMeterSchema>): Promise<ReceivedMeter> {
     const [newItem] = await db.insert(receivedMeters).values({
         ...data,
@@ -170,47 +236,32 @@ async deleteParty(id: number): Promise<void> {
     return await db.select().from(salaries).orderBy(desc(salaries.createdAt));
   }
 
- async createSalary(
-  data: z.infer<typeof insertSalarySchema>
-): Promise<Salary> {
+  async getAdvances(): Promise<Advance[]> {
+    return await db.select().from(advances).orderBy(desc(advances.createdAt));
+  }
+
+  async createAdvance(
+  data: z.infer<typeof insertAdvanceSchema> & { balance: string }
+): Promise<Advance> {
+
   const [newItem] = await db
-    .insert(salaries)
+    .insert(advances)
     .values({
       ...data,
-      totalMeter: String(data.totalMeter),
-      pick: String(data.pick),
-      rate: String(data.rate),
-      basicSalary: String(data.basicSalary),
-      rent: String(data.rent),
-      advance: String(data.advance),
-      balance: String(data.balance),
+      amount: String(data.amount),
+      balance: data.balance,
     })
     .returning();
 
-  // Update Party Advance Balance
   await db
     .update(parties)
     .set({
-      advanceBalance: String(data.advance),
+      advanceBalance: data.balance,
     })
     .where(eq(parties.id, data.partyId));
 
   return newItem;
 }
-
-  async getAdvances(): Promise<Advance[]> {
-    return await db.select().from(advances).orderBy(desc(advances.createdAt));
-  }
-
-  async createAdvance(data: z.infer<typeof insertAdvanceSchema> & { balance: string }): Promise<Advance> {
-    const [newItem] = await db.insert(advances).values({
-      ...data,
-      amount: String(data.amount),
-      balance: data.balance
-    }).returning();
-    return newItem;
-  }
-
   async getNotes(): Promise<Note[]> {
     return await db.select().from(notes).orderBy(desc(notes.createdAt));
   }

@@ -24,13 +24,17 @@ export const parties = pgTable("parties", {
   reed: numeric("reed").notNull(),
 
 
-  advanceBalance: numeric("advance_balance").notNull().default("0"),
-});
+advanceBalance: numeric("advance_balance").notNull().default("0"),
+
+currentBalance: numeric("current_balance")
+  .notNull()
+  .default("0"),});
 
 export const receivedMeters = pgTable("received_meters", {
   id: serial("id").primaryKey(),
   partyId: integer("party_id").notNull(),
   meter: numeric("meter").notNull(),
+  pieces: integer("pieces").notNull().default(0),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -65,10 +69,13 @@ export const salaries = pgTable("salaries", {
   basicSalary: numeric("basic_salary").notNull(),
 
   rent: numeric("rent").notNull(),
+advance: numeric("advance").notNull(),
 
-  advance: numeric("advance").notNull(),
+paidAmount: numeric("paid_amount").notNull(),
 
-  balance: numeric("balance").notNull(),
+currentBalance: numeric("current_balance").notNull(),
+
+balance: numeric("balance").notNull(),
 
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
@@ -98,6 +105,7 @@ export const insertPartySchema = createInsertSchema(parties)
   .omit({
     id: true,
     advanceBalance: true,
+    currentBalance: true,
   })
   .extend({
     companyName: z.string(),
@@ -114,9 +122,13 @@ export const insertPartySchema = createInsertSchema(parties)
   });
 
 export const insertReceivedMeterSchema = createInsertSchema(receivedMeters)
-  .omit({ id: true, createdAt: true })
+  .omit({
+    id: true,
+    createdAt: true,
+  })
   .extend({
     meter: z.coerce.number(),
+    pieces: z.coerce.number().int().min(1),
   });
 
 export const insertDeliveryBagSchema = createInsertSchema(deliveryBags)
@@ -131,24 +143,31 @@ export const insertDeliveryBeamSchema = createInsertSchema(deliveryBeams)
   .extend({
     beamCount: z.coerce.number(),
     totalMeter: z.coerce.number(),
-  });export const insertSalarySchema = createInsertSchema(salaries)
-  .omit({ id: true, createdAt: true })
-  .extend({
-    totalMeter: z.coerce.number(),
-    pick: z.coerce.number(),
-    rate: z.coerce.number(),
-    basicSalary: z.coerce.number(),
-    rent: z.coerce.number(),
-    advance: z.coerce.number(),
-    balance: z.coerce.number(),
   });
+  export const insertSalarySchema = z.object({
+  partyId: z.number(),
+  totalMeter: z.number(),
+  pick: z.number(),
+  rate: z.number(),
+  basicSalary: z.number(),
+  rent: z.number(),
+  advance: z.number(),
+  paidAmount: z.number(),
+  currentBalance: z.number(),
+  balance: z.number(),
+});
 
 export const insertAdvanceSchema = createInsertSchema(advances)
-  .omit({ id: true, createdAt: true, balance: true })
+  .omit({
+    id: true,
+    createdAt: true,
+    balance: true,
+  })
   .extend({
+    partyId: z.coerce.number(),
     amount: z.coerce.number(),
+    reason: z.string(),
   });
-
 export const insertNoteSchema = createInsertSchema(notes).omit({
   id: true,
   createdAt: true,
